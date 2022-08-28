@@ -11,6 +11,30 @@ class MultiWordExpressionExtractor:
     stopwords: list[str]  = []
     connector_words: list[str] = []
     whitelist: list[str] = []
+    simple_trigram_pipeline: list[str] = [
+        "extract_mwe", 
+        "tokenise_mwe",
+        "extract_mwe",
+        "export_mwe", 
+        "blacklist_mwe",
+        "remove_blacklisted_mwe"
+    ]
+    granular_fourgram_pipeline = [
+        "extract_mwe", 
+        "export_mwe", 
+        "blacklist_mwe",
+        "remove_blacklisted_mwe",
+        "tokenise_mwe",
+        "extract_mwe", 
+        "export_mwe", 
+        "blacklist_mwe",
+        "remove_blacklisted_mwe",
+        "tokenise_mwe",
+        "extract_mwe",
+        "export_mwe", 
+        "blacklist_mwe",
+        "remove_blacklisted_mwe"
+    ]
 
     
     def __init__(self, corpus: list[list[str]]) -> None:
@@ -74,7 +98,7 @@ class MultiWordExpressionExtractor:
         [getattr(self, method)() for method in tasks]
 
 
-    def get_top_ngrams(self, top_n: int = None, ngram_size: list[int] = [1,2,3], min_freq: int = 10) -> dict:
+    def get_top_ngrams(self, top_n: int = None, ngram_size: list[int] = [1,2,3], min_freq: int = 2) -> dict:
         top_ngrams = defaultdict(list)
         vocab_sorted = MultiWordExpressionExtractor.sort_dict(self.phrases_model.vocab)
         if top_n:
@@ -121,19 +145,17 @@ if __name__ == "__main__":
     mwe_extractor.stopwords = stopwords
     mwe_extractor.connector_words = connector_words
     mwe_extractor.whitelist = whitelist
-
-    tasks = [
-        "extract_mwe", 
-        # "export_mwe", 
-        # "blacklist_mwe",
-        # "remove_blacklisted_mwe",
-        "tokenise_mwe",
-        "extract_mwe",
-        "export_mwe", 
-        "blacklist_mwe",
-        "remove_blacklisted_mwe"
-        ]
-    
-    mwe_extractor.apply_pipeline(tasks)
+    mwe_extractor.apply_pipeline(MultiWordExpressionExtractor.simple_trigram_pipeline)
     mwe_extractor.get_top_ngrams()
     mwe_extractor.top_ngrams
+    
+    mwe_extractor = MultiWordExpressionExtractor(corpus)
+    mwe_extractor.stopwords = stopwords
+    mwe_extractor.connector_words = connector_words
+    mwe_extractor.whitelist = whitelist
+    mwe_extractor.apply_pipeline(MultiWordExpressionExtractor.granular_fourgram_pipeline)
+    mwe_extractor.get_top_ngrams()
+    mwe_extractor.top_ngrams.keys() # Check if there are 4-grams
+    mwe_extractor.top_ngrams
+
+    #TODO: When "granular" pipeline is implemented, stopwords are still present in final `top_ngrams` object.
